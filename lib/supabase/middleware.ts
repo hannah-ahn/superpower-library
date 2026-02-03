@@ -54,32 +54,35 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  // DEVELOPMENT MODE: Auth disabled for easier development
+  // TODO: Re-enable auth before production by uncommenting below
+
   // Refresh session if it exists
-  const { data: { user } } = await supabase.auth.getUser()
+  // const { data: { user } } = await supabase.auth.getUser()
 
   // Protected routes - redirect to login if not authenticated
-  const protectedPaths = ['/']
-  const isProtectedPath = protectedPaths.some(
-    (path) => request.nextUrl.pathname === path ||
-              request.nextUrl.pathname.startsWith('/api/assets') ||
-              request.nextUrl.pathname.startsWith('/api/search')
-  )
+  // const protectedPaths = ['/']
+  // const isProtectedPath = protectedPaths.some(
+  //   (path) => request.nextUrl.pathname === path ||
+  //             request.nextUrl.pathname.startsWith('/api/assets') ||
+  //             request.nextUrl.pathname.startsWith('/api/search')
+  // )
 
-  if (!user && isProtectedPath) {
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('redirect', request.nextUrl.pathname)
-    return NextResponse.redirect(loginUrl)
-  }
+  // if (!user && isProtectedPath) {
+  //   const loginUrl = new URL('/login', request.url)
+  //   loginUrl.searchParams.set('redirect', request.nextUrl.pathname)
+  //   return NextResponse.redirect(loginUrl)
+  // }
 
   // Auth routes - redirect to home if already authenticated
-  const authPaths = ['/login']
-  const isAuthPath = authPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
-  )
+  // const authPaths = ['/login']
+  // const isAuthPath = authPaths.some((path) =>
+  //   request.nextUrl.pathname.startsWith(path)
+  // )
 
-  if (user && isAuthPath) {
-    return NextResponse.redirect(new URL('/', request.url))
-  }
+  // if (user && isAuthPath) {
+  //   return NextResponse.redirect(new URL('/', request.url))
+  // }
 
   return response
 }
