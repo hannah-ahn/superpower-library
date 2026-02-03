@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 import { logError, logInfo } from '@/lib/logger'
 
 interface RouteParams {
@@ -10,12 +10,11 @@ interface RouteParams {
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
-    const supabase = await createServerSupabaseClient()
+    const supabase = await createServiceRoleClient()
 
+    // DEVELOPMENT: Auth disabled
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = user?.id || 'dev-user-id'
 
     // Get asset
     const { data: asset, error: fetchError } = await supabase
@@ -61,10 +60,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Record download
     await supabase.from('downloads').insert({
       asset_id: id,
-      downloaded_by: user.id,
+      downloaded_by: userId,
     })
 
-    logInfo('Asset downloaded', { userId: user.id, assetId: id })
+    logInfo('Asset downloaded', { userId, assetId: id })
 
     return NextResponse.json({ download_url: urlData.signedUrl })
   } catch (error) {
@@ -77,12 +76,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
-    const supabase = await createServerSupabaseClient()
+    const supabase = await createServiceRoleClient()
 
+    // DEVELOPMENT: Auth disabled
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = user?.id || 'dev-user-id'
 
     const { data: downloads, error, count } = await supabase
       .from('downloads')

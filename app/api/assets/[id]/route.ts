@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 import { logError, logInfo } from '@/lib/logger'
 import { validateFilename } from '@/lib/utils/file'
 
@@ -11,12 +11,11 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
-    const supabase = await createServerSupabaseClient()
+    const supabase = await createServiceRoleClient()
 
+    // DEVELOPMENT: Auth disabled
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = user?.id || 'dev-user-id'
 
     const { data: asset, error } = await supabase
       .from('assets')
@@ -59,12 +58,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
-    const supabase = await createServerSupabaseClient()
+    const supabase = await createServiceRoleClient()
 
+    // DEVELOPMENT: Auth disabled
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = user?.id || 'dev-user-id'
 
     const body = await request.json()
     const updates: Record<string, unknown> = {}
@@ -101,11 +99,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       .single()
 
     if (error) {
-      logError(error, { userId: user.id, assetId: id })
+      logError(error, { userId, assetId: id })
       return NextResponse.json({ error: 'Failed to update asset' }, { status: 500 })
     }
 
-    logInfo('Asset updated', { userId: user.id, assetId: id, updates })
+    logInfo('Asset updated', { userId, assetId: id, updates })
 
     return NextResponse.json(asset)
   } catch (error) {
@@ -118,12 +116,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
-    const supabase = await createServerSupabaseClient()
+    const supabase = await createServiceRoleClient()
 
+    // DEVELOPMENT: Auth disabled
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = user?.id || 'dev-user-id'
 
     // Get asset to find storage paths
     const { data: asset, error: fetchError } = await supabase
@@ -155,7 +152,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Failed to delete asset' }, { status: 500 })
     }
 
-    logInfo('Asset deleted', { userId: user.id, assetId: id })
+    logInfo('Asset deleted', { userId, assetId: id })
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 import { logError } from '@/lib/logger'
 import { generateEmbedding } from '@/lib/ai/embeddings'
 
 // GET /api/search?q=query
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient()
+    const supabase = await createServiceRoleClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    // DEVELOPMENT: Auth disabled
+    // const { data: { user } } = await supabase.auth.getUser()
+    // const userId = user?.id || 'dev-user-id'
 
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q')?.trim()

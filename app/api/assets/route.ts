@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 import { logError, logInfo } from '@/lib/logger'
 import { sanitizeFilename, getFileType } from '@/lib/utils/file'
 import { MAX_FILE_SIZE, ALLOWED_FILE_TYPES } from '@/types/database'
@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid'
 // GET /api/assets - List assets
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient()
+    const supabase = await createServiceRoleClient()
 
     // DEVELOPMENT: Auth disabled - use a dev user ID
     const { data: { user } } = await supabase.auth.getUser()
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
 // POST /api/assets - Upload asset
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient()
+    const supabase = await createServiceRoleClient()
 
     // DEVELOPMENT: Auth disabled - use a dev user ID
     const { data: { user } } = await supabase.auth.getUser()
