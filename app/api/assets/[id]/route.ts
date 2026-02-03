@@ -148,7 +148,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .eq('id', id)
 
     if (deleteError) {
-      logError(deleteError, { userId: user.id, assetId: id })
+      logError(deleteError, { userId, assetId: id })
       return NextResponse.json({ error: 'Failed to delete asset' }, { status: 500 })
     }
 
