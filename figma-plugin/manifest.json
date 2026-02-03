@@ -1,0 +1,20 @@
+{
+  "name": "Superpower Library",
+  "id": "com.superpower.library",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "menu": [
+    { "name": "Export to Library", "command": "export" },
+    { "separator": true },
+    { "name": "Sign In", "command": "auth" },
+    { "name": "Sign Out", "command": "signout" }
+  ],
+  "networkAccess": {
+    "allowedDomains": [
+      "https://superpower-library.vercel.app",
+      "https://*.supabase.co"
+    ]
+  }
+}
