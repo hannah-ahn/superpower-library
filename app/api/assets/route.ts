@@ -10,10 +10,12 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
 
+    // DEVELOPMENT: Auth disabled - use a dev user ID
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = user?.id || 'dev-user-id'
+    // if (!user) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // }
 
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
@@ -43,7 +45,7 @@ export async function GET(request: NextRequest) {
     const { data: assets, count, error } = await query
 
     if (error) {
-      logError(error, { userId: user.id })
+      logError(error, { userId })
       return NextResponse.json({ error: 'Failed to fetch assets' }, { status: 500 })
     }
 
@@ -88,10 +90,12 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
 
+    // DEVELOPMENT: Auth disabled - use a dev user ID
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const userId = user?.id || 'dev-user-id'
+    // if (!user) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // }
 
     const formData = await request.formData()
     const file = formData.get('file') as File | null
@@ -118,7 +122,7 @@ export async function POST(request: NextRequest) {
     const assetId = uuidv4()
     const sanitizedFilename = sanitizeFilename(file.name)
     const extension = file.name.split('.').pop() || ''
-    const storagePath = `${user.id}/${assetId}/original.${extension}`
+    const storagePath = `${userId}/${assetId}/original.${extension}`
 
     // Upload file to storage
     const arrayBuffer = await file.arrayBuffer()
@@ -130,7 +134,7 @@ export async function POST(request: NextRequest) {
       })
 
     if (uploadError) {
-      logError(uploadError, { userId: user.id, assetId })
+      logError(uploadError, { userId, assetId })
       return NextResponse.json({ error: 'Upload failed. Please try again.' }, { status: 500 })
     }
 
@@ -139,7 +143,7 @@ export async function POST(request: NextRequest) {
       .from('assets')
       .insert({
         id: assetId,
-        uploaded_by: user.id,
+        uploaded_by: userId,
         filename: sanitizedFilename,
         original_filename: file.name,
         file_type: fileType,
@@ -152,7 +156,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (insertError) {
-      logError(insertError, { userId: user.id, assetId })
+      logError(insertError, { userId, assetId })
       // Clean up uploaded file
       await supabase.storage.from('assets').remove([storagePath])
       return NextResponse.json({ error: 'Failed to create asset' }, { status: 500 })
@@ -165,7 +169,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ asset_id: assetId }),
     }).catch((err) => logError(err, { assetId }))
 
-    logInfo('Asset uploaded', { userId: user.id, assetId, filename: sanitizedFilename })
+    logInfo('Asset uploaded', { userId, assetId, filename: sanitizedFilename })
 
     return NextResponse.json({
       asset,
